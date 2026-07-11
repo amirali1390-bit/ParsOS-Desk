@@ -1,0 +1,82 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <!--<RuntimeIdentifier>cosmos</RuntimeIdentifier>-->
+        <Platform>cosmos</Platform>
+        <SupportsX86Intrinsics>false</SupportsX86Intrinsics>
+        <SelfContained>True</SelfContained>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <EnableGDB>False</EnableGDB>
+        <StartCosmosGDB>False</StartCosmosGDB>
+        <VisualStudioDebugPort>Pipe: Cosmos\Serial</VisualStudioDebugPort>
+        <CosmosDebugPort>Serial: COM1</CosmosDebugPort>
+        <Launch>VMware</Launch>
+        <Profile>VMware</Profile>
+        <Description>Use VMware Player or Workstation to deploy and debug.</Description>
+        <PxeInterface>192.168.0.8</PxeInterface>
+        <DebugEnabled>False</DebugEnabled>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Compile Remove="Apps\Calculator\**" />
+      <EmbeddedResource Remove="Apps\Calculator\**" />
+      <None Remove="Apps\Calculator\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Assets\Apps\Calculator\app.wasm" />
+      <None Remove="Assets\Apps\Calculator\app.wsm" />
+      <None Remove="Assets\Apps\Calculator\manifest.cfg" />
+      <None Remove="Assets\Fonts\Vazir.ttf" />
+      <None Remove="Assets\Icons\FileExploler.bmp" />
+      <None Remove="Assets\Icons\Folder.bmp" />
+      <None Remove="Assets\Icons\MusicPlayer.bmp" />
+      <None Remove="Assets\Icons\Notepad.bmp" />
+      <None Remove="Assets\Icons\Settings.bmp" />
+      <None Remove="Assets\Icons\Terminal.bmp" />
+      <None Remove="Assets\Icons\WebBrowser.bmp" />
+      <None Remove="Assets\Images\Cursor.bmp" />
+      <None Remove="Assets\Images\folder.bmp" />
+      <None Remove="Assets\Images\wallpaper.bmp" />
+      <None Remove="Assets\Images\Wallpaper.png" />
+      <None Remove="Assets\Images\Wallpaper1.png" />
+      <None Remove="Assets\Images\Wallpaper2.png" />
+      <None Remove="Assets\Logo\Logo.png" />
+      <None Remove="Assets\Music\audio-in-my-head-by-bedroom.mp3" />
+      <None Remove="Assets\Music\XaniarKhosravi-YeSetareh.mp3" />
+      <None Remove="Assets\Music\Youna-BavarKardam%28320%29.mp3" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="Assets\Apps\Calculator\app.wsm" />
+      <EmbeddedResource Include="Assets\Apps\Calculator\manifest.cfg" />
+      <EmbeddedResource Include="Assets\Fonts\Vazir.ttf" />
+      <EmbeddedResource Include="Assets\Icons\FileExploler.bmp" />
+      <EmbeddedResource Include="Assets\Icons\Folder.bmp" />
+      <EmbeddedResource Include="Assets\Icons\MusicPlayer.bmp" />
+      <EmbeddedResource Include="Assets\Icons\Notepad.bmp" />
+      <EmbeddedResource Include="Assets\Icons\Settings.bmp" />
+      <EmbeddedResource Include="Assets\Icons\Terminal.bmp" />
+      <EmbeddedResource Include="Assets\Icons\WebBrowser.bmp" />
+      <EmbeddedResource Include="Assets\Images\Cursor.bmp" />
+      <EmbeddedResource Include="Assets\Images\folder.bmp" />
+      <EmbeddedResource Include="Assets\Images\wallpaper.bmp" />
+      <EmbeddedResource Include="Assets\Images\Wallpaper.png" />
+      <EmbeddedResource Include="Assets\Images\Wallpaper1.png" />
+      <EmbeddedResource Include="Assets\Images\Wallpaper2.png" />
+      <EmbeddedResource Include="Assets\Logo\Logo.png" />
+      <EmbeddedResource Include="Assets\Music\audio-in-my-head-by-bedroom.mp3" />
+      <EmbeddedResource Include="Assets\Music\XaniarKhosravi-YeSetareh.mp3" />
+      <EmbeddedResource Include="Assets\Music\Youna-BavarKardam(320).mp3" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Cosmos.Build" Version="0-*" NoWarn="NU1604" />
+        <PackageReference Include="Cosmos.Debug.Kernel" Version="0-*" NoWarn="NU1604" />
+        <PackageReference Include="Cosmos.System2" Version="0-*" NoWarn="NU1604" />
+    </ItemGroup>
+
+</Project>
