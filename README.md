@@ -47,8 +47,6 @@
 
 ### 🚀 Getting Started
 
-> ⚠️ Fill in the exact steps for your setup — the outline below is a common Cosmos workflow.
-
 **Requirements:**
 - Visual Studio 2022 or 2026
 - Cosmos User Kit(latest version) installed
