@@ -61,7 +61,7 @@
 
 ### 🤝 Contributing
 
-Contributions, issues, and feature requests are welcome!
+]ssues and feature requests are welcome!
 Feel free to check the [issues page](../../issues) or open a pull request.
 
 ### 📄 License
