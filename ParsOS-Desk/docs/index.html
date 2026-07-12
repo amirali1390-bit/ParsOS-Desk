@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ParsOS Desk — سیستم‌عامل گرافیکی</title>
+<meta name="description" content="ParsOS Desk — یک سیستم‌عامل گرافیکی ساخته‌شده با Cosmos و C#، مستقیم روی سخت‌افزار." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg1:#1e2f68; --bg2:#32468f; --bg3:#3c2f7c; --bg4:#22346b;
+    --text-color:#f5f7fc;
+    --text-muted:#c7cde3;
+    --accent:#e8b74e;
+    --accent-hover:#f3c96b;
+    --accent-2:#8aa4ff;
+    --accent-teal:#4fd8bd;
+    --glass-bg: rgba(255,255,255,0.09);
+    --glass-border: rgba(255,255,255,0.18);
+    --glass-hover: rgba(255,255,255,0.15);
+    --shadow: rgba(5,8,24,0.30);
+    --shadow-strong: rgba(5,8,24,0.5);
+    --btn-primary-text:#221a05;
+    --code-bg: rgba(6,10,26,0.55);
+    --window-bg: rgba(14,18,38,0.55);
+  }
+
+  body[data-theme="dark"] {
+    --bg1:#050813; --bg2:#0a1130; --bg3:#120a28; --bg4:#07122c;
+    --text-color:#eef1f8;
+    --text-muted:#9099b8;
+    --accent:#e8b74e;
+    --accent-hover:#f3c96b;
+    --accent-2:#7c9bff;
+    --accent-teal:#45d6b8;
+    --glass-bg: rgba(255,255,255,0.045);
+    --glass-border: rgba(255,255,255,0.10);
+    --glass-hover: rgba(255,255,255,0.09);
+    --shadow: rgba(0,0,0,0.35);
+    --shadow-strong: rgba(0,0,0,0.6);
+    --code-bg: rgba(2,4,14,0.6);
+    --window-bg: rgba(8,10,24,0.6);
+  }
+
+  html { box-sizing:border-box; scroll-behavior:smooth; }
+  *,*::before,*::after { box-sizing:inherit; }
+
+  body {
+    margin:0; padding:0;
+    font-family:'Inter','Vazirmatn',-apple-system,'Segoe UI',sans-serif;
+    color:var(--text-color);
+    background: linear-gradient(-45deg,var(--bg1),var(--bg2),var(--bg3),var(--bg4));
+    background-size:400% 400%;
+    animation: gradientBG 22s ease infinite;
+    transition: background 0.6s ease, color 0.4s ease;
+    overflow-x:hidden;
+  }
+  @keyframes gradientBG { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+
+  html[lang="fa"] body, html[lang="ar"] body { direction: rtl; }
+  html:not([lang="fa"]):not([lang="ar"]) body { direction: ltr; }
+
+  h1,h2,h3,.eyebrow,.brand,.os-win-title,.badge-pill,.section-eyebrow {
+    font-family:'Space Grotesk','Vazirmatn',sans-serif;
+  }
+  code, .mono, .os-body, .req-item, .clone-box { font-family:'JetBrains Mono','Vazirmatn',monospace; }
+
+  .wrap { max-width:1180px; margin:0 auto; padding:0 1.75rem; }
+
+  a { color:inherit; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; }
+  }
+
+  /* ---------- Settings ---------- */
+  .settings-container { position:fixed; top:18px; right:18px; z-index:1000; }
+  html[lang="fa"] .settings-container, html[lang="ar"] .settings-container { right:auto; left:18px; }
+
+  .settings-menu-toggle {
+    width:44px; height:44px; border-radius:50%;
+    background:var(--glass-bg); border:1px solid var(--glass-border); color:var(--text-color);
+    font-size:1.25rem; cursor:pointer; backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+    display:flex; align-items:center; justify-content:center; transition:all .3s ease;
+  }
+  .settings-menu-toggle:hover { background:var(--glass-hover); transform:scale(1.08) rotate(18deg); }
+
+  .settings-dropdown {
+    position:absolute; top:calc(100% + 10px); right:0; width:230px;
+    background:var(--window-bg); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+    border:1px solid var(--glass-border); border-radius:14px; box-shadow:0 14px 40px var(--shadow-strong);
+    padding:.6rem; opacity:0; visibility:hidden; transform:translateY(8px);
+    transition:all .28s cubic-bezier(.25,.8,.25,1);
+  }
+  html[lang="fa"] .settings-dropdown, html[lang="ar"] .settings-dropdown { right:auto; left:0; }
+  .settings-dropdown.active { opacity:1; visibility:visible; transform:translateY(0); }
+
+  .settings-dropdown-item {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:.65rem .7rem; border-radius:9px; cursor:pointer; font-size:.92rem; transition:background .2s ease;
+  }
+  .settings-dropdown-item:hover { background:var(--glass-hover); }
+  .settings-dropdown-item:not(:last-child) { margin-bottom:4px; }
+
+  .dark-mode-switch { position:relative; display:inline-block; width:44px; height:24px; }
+  .dark-mode-switch input { opacity:0; width:0; height:0; }
+  .slider { position:absolute; inset:0; background:#555; border-radius:34px; cursor:pointer; transition:.35s; }
+  .slider:before { content:""; position:absolute; height:17px; width:17px; left:3.5px; bottom:3.5px; background:#fff; border-radius:50%; transition:.35s; }
+  input:checked + .slider { background:var(--accent); }
+  input:checked + .slider:before { transform:translateX(20px); }
+
+  /* ---------- Modal ---------- */
+  .modal-overlay {
+    position:fixed; inset:0; background:rgba(4,6,16,0.55); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    z-index:2000; display:flex; align-items:center; justify-content:center;
+    opacity:0; visibility:hidden; transition:opacity .3s ease;
+  }
+  .modal-overlay.modal-visible { opacity:1; visibility:visible; }
+  .modal-content {
+    background:var(--window-bg); border:1px solid var(--glass-border); border-radius:18px; padding:2rem;
+    width:90%; max-width:480px; box-shadow:0 20px 60px var(--shadow-strong); position:relative; text-align:center;
+    transform:scale(.92); transition:transform .3s cubic-bezier(.25,.8,.25,1); backdrop-filter:blur(20px);
+  }
+  .modal-overlay.modal-visible .modal-content { transform:scale(1); }
+  .modal-close { position:absolute; top:14px; right:16px; font-size:1.4rem; cursor:pointer; color:var(--text-muted); transition:all .2s ease; }
+  html[lang="fa"] .modal-close, html[lang="ar"] .modal-close { right:auto; left:16px; }
+  .modal-close:hover { color:var(--accent); transform:scale(1.15); }
+  .modal-title { margin:0 0 1.4rem; font-size:1.3rem; }
+
+  .language-grid { display:grid; grid-template-columns:1fr 1fr; gap:.7rem; }
+  .lang-button {
+    padding:.8rem; background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:11px;
+    color:var(--text-color); font-family:'Inter','Vazirmatn',sans-serif; font-size:.92rem; cursor:pointer; transition:all .25s ease;
+  }
+  .lang-button:hover { background:var(--accent); color:var(--btn-primary-text); transform:translateY(-2px); }
+
+  /* ---------- Hero ---------- */
+  header.hero { padding:6.5rem 0 3rem; }
+  .hero-grid { display:grid; grid-template-columns:1.05fr 1fr; gap:3.2rem; align-items:center; }
+
+  .eyebrow {
+    display:inline-flex; align-items:center; gap:.5rem; font-size:.78rem; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--accent-2); font-weight:600; margin-bottom:1.1rem; opacity:0; animation:fadeInUp .7s .1s forwards ease-out;
+  }
+  .eyebrow::before { content:""; width:7px; height:7px; border-radius:50%; background:var(--accent-teal); box-shadow:0 0 10px var(--accent-teal); }
+
+  h1.brand { font-size:3.4rem; line-height:1.08; margin:0 0 1rem; font-weight:700; opacity:0; animation:fadeInUp .8s .2s forwards ease-out; }
+
+  .subtitle { font-size:1.14rem; color:var(--text-muted); max-width:520px; margin:0 0 1.7rem; line-height:1.75; opacity:0; animation:fadeInUp .8s .35s forwards ease-out; }
+
+  .badge-row { display:flex; flex-wrap:wrap; gap:.55rem; margin-bottom:2rem; opacity:0; animation:fadeInUp .8s .5s forwards ease-out; }
+  .badge-pill {
+    font-size:.76rem; padding:.4rem .8rem; border-radius:999px; border:1px solid var(--glass-border);
+    background:var(--glass-bg); backdrop-filter:blur(8px); color:var(--text-muted); letter-spacing:.02em;
+  }
+  .badge-pill.status { color:var(--accent); border-color:rgba(232,183,78,0.4); display:flex; align-items:center; gap:.4rem; }
+  .badge-pill.status::before { content:""; width:6px; height:6px; border-radius:50%; background:var(--accent); animation:pulse 1.8s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+  .cta-row { display:flex; gap:1rem; flex-wrap:wrap; opacity:0; animation:fadeInUp .8s .65s forwards ease-out; }
+
+  .btn {
+    font-family:'Inter','Vazirmatn',sans-serif; font-size:1rem; font-weight:600; padding:.85rem 1.7rem;
+    border-radius:12px; text-decoration:none; cursor:pointer; border:1px solid transparent; transition:all .3s ease;
+    display:inline-flex; align-items:center; gap:.5rem;
+  }
+  .btn.primary { background:var(--accent); color:var(--btn-primary-text); box-shadow:0 8px 24px rgba(232,183,78,0.25); }
+  .btn.primary:hover { background:var(--accent-hover); transform:translateY(-3px); box-shadow:0 12px 30px rgba(232,183,78,0.35); }
+  .btn.secondary { background:var(--glass-bg); color:var(--text-color); border-color:var(--glass-border); backdrop-filter:blur(8px); }
+  .btn.secondary:hover { background:var(--glass-hover); transform:translateY(-3px); }
+
+  @keyframes fadeInUp { from{opacity:0; transform:translateY(18px);} to{opacity:1; transform:translateY(0);} }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+  /* ---------- Hero visual: screenshot frame ---------- */
+  .hero-visual { opacity:0; animation:fadeIn 1s .5s forwards ease-out; perspective:1200px; }
+  .os-frame {
+    position:relative; width:100%; aspect-ratio:4/3; border-radius:20px; overflow:hidden;
+    border:1px solid var(--glass-border); box-shadow:0 30px 70px var(--shadow-strong), inset 0 0 0 1px rgba(255,255,255,0.04);
+    transform-style:preserve-3d; transition:transform .15s ease-out;
+    background: linear-gradient(160deg,#0c1230 0%, #171034 55%, #0a1128 100%);
+  }
+  .hero-img {
+    position:relative; z-index:1; display:block; width:100%; height:100%; object-fit:cover;
+  }
+  .hero-img-glow {
+    position:absolute; inset:0; z-index:2; pointer-events:none;
+    background: linear-gradient(160deg, rgba(124,155,255,0.14), transparent 40%, transparent 65%, rgba(232,183,78,0.10));
+    mix-blend-mode:overlay;
+  }
+
+  /* ---------- Sections ---------- */
+  section { padding:3.6rem 0; }
+  .section-head { text-align:center; max-width:600px; margin:0 auto 2.6rem; }
+  .section-eyebrow { font-size:.76rem; letter-spacing:.14em; text-transform:uppercase; color:var(--accent-2); font-weight:600; margin-bottom:.6rem; }
+  .section-title { font-size:2rem; margin:0 0 .7rem; }
+  .section-desc { color:var(--text-muted); font-size:1rem; line-height:1.7; margin:0; }
+
+  /* Feature grid */
+  .feature-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:1.2rem; }
+  .feature-card {
+    border-radius:14px; overflow:hidden; background:var(--glass-bg); border:1px solid var(--glass-border);
+    backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); transition:all .3s ease;
+    opacity:0; transform:translateY(16px); animation:featureIn .55s forwards ease-out;
+  }
+  .feature-card:nth-child(1){animation-delay:.05s} .feature-card:nth-child(2){animation-delay:.12s}
+  .feature-card:nth-child(3){animation-delay:.19s} .feature-card:nth-child(4){animation-delay:.26s}
+  .feature-card:nth-child(5){animation-delay:.33s} .feature-card:nth-child(6){animation-delay:.4s}
+  .feature-card:nth-child(7){animation-delay:.47s}
+  @keyframes featureIn { to{opacity:1; transform:translateY(0);} }
+  .feature-card:hover { transform:translateY(-5px); box-shadow:0 16px 40px var(--shadow); background:var(--glass-hover); }
+  .feature-titlebar { display:flex; gap:.4rem; padding:.55rem .75rem; background:rgba(255,255,255,0.04); border-bottom:1px solid var(--glass-border); }
+  .feature-titlebar span { width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,0.25); }
+  .feature-body { padding:1.3rem 1.2rem 1.5rem; }
+  .feature-icon { font-size:1.5rem; margin-bottom:.6rem; display:block; }
+  .feature-text { font-size:.94rem; line-height:1.65; color:var(--text-muted); margin:0; }
+
+  /* Tech stack */
+  .tech-strip { display:flex; flex-wrap:wrap; justify-content:center; gap:.8rem; }
+  .tech-pill {
+    display:flex; align-items:center; gap:.5rem; padding:.65rem 1.1rem; border-radius:11px;
+    background:var(--glass-bg); border:1px solid var(--glass-border); font-size:.88rem; backdrop-filter:blur(8px);
+  }
+
+  /* Screenshots CTA */
+  .shot-card {
+    display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:1.5rem;
+    background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:18px; padding:2rem;
+    backdrop-filter:blur(14px);
+  }
+  .shot-card h3 { margin:0 0 .4rem; font-size:1.2rem; }
+  .shot-card p { margin:0; color:var(--text-muted); max-width:420px; line-height:1.6; font-size:.94rem; }
+
+  /* Getting started */
+  .getstarted-card {
+    background:var(--window-bg); border:1px solid var(--glass-border); border-radius:18px; padding:2rem;
+    backdrop-filter:blur(16px); box-shadow:0 16px 40px var(--shadow);
+  }
+  .req-list { list-style:none; margin:0 0 1.6rem; padding:0; display:flex; flex-direction:column; gap:.7rem; }
+  .req-item { display:flex; align-items:center; gap:.7rem; font-size:.9rem; color:var(--text-color); }
+  .req-item::before { content:"✓"; width:22px; height:22px; flex-shrink:0; border-radius:50%; background:rgba(79,216,189,0.15); color:var(--accent-teal); display:flex; align-items:center; justify-content:center; font-size:.75rem; }
+
+  .clone-box {
+    display:flex; align-items:center; justify-content:space-between; gap:.8rem;
+    background:var(--code-bg); border:1px solid var(--glass-border); border-radius:10px; padding:.8rem 1rem;
+    font-size:.82rem; color:var(--accent-teal); overflow-x:auto;
+  }
+  .copy-btn {
+    background:var(--glass-bg); border:1px solid var(--glass-border); color:var(--text-color); border-radius:7px;
+    padding:.4rem .7rem; font-size:.78rem; cursor:pointer; flex-shrink:0; transition:all .2s ease; font-family:'Inter','Vazirmatn',sans-serif;
+  }
+  .copy-btn:hover { background:var(--glass-hover); }
+
+  /* Footer */
+  footer { text-align:center; padding:2.6rem 1rem; margin-top:2rem; background:rgba(0,0,0,0.18); }
+  footer strong { display:block; font-size:1.3rem; margin-bottom:.4rem; }
+  footer a { color:var(--accent); text-decoration:none; font-weight:600; transition:color .3s ease; }
+  footer a:hover { color:var(--text-color); }
+  .copyright { margin-top:.7rem; font-size:.85rem; color:var(--text-muted); opacity:.85; }
+
+  @media (max-width:900px) {
+    .hero-grid { grid-template-columns:1fr; }
+    .hero-visual { order:-1; max-width:460px; margin:0 auto; }
+    h1.brand { font-size:2.5rem; }
+  }
+  @media (max-width:520px) {
+    header.hero { padding:5.5rem 0 2rem; }
+    .language-grid { grid-template-columns:1fr; }
+    .shot-card { flex-direction:column; align-items:flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<div class="settings-container">
+  <button class="settings-menu-toggle" id="settings-toggle-btn" aria-label="Settings">⚙️</button>
+  <div class="settings-dropdown" id="settings-dropdown-menu">
+    <div class="settings-dropdown-item" id="lang-modal-open">
+      <span data-key="lang-menu">🌐 تغییر زبان</span><span>›</span>
+    </div>
+    <div class="settings-dropdown-item">
+      <span data-key="dark-mode">حالت تاریک 🌙</span>
+      <label class="dark-mode-switch">
+        <input type="checkbox" id="dark-mode-toggle">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+</div>
+
+<div id="language-modal" class="modal-overlay">
+  <div class="modal-content">
+    <span class="modal-close" id="lang-modal-close">&times;</span>
+    <h2 class="modal-title" data-key="modal-title">زبان خود را انتخاب کنید</h2>
+    <div class="language-grid">
+      <button class="lang-button" onclick="setLang('fa')">فارسی</button>
+      <button class="lang-button" onclick="setLang('en')">English</button>
+      <button class="lang-button" onclick="setLang('ar')">العربية</button>
+      <button class="lang-button" onclick="setLang('ru')">Русский</button>
+      <button class="lang-button" onclick="setLang('zh')">中文</button>
+      <button class="lang-button" onclick="setLang('hi')">हिन्दी</button>
+      <button class="lang-button" onclick="setLang('es')">Español</button>
+      <button class="lang-button" onclick="setLang('ve')">Español (Venezuela)</button>
+      <button class="lang-button" onclick="setLang('fr')">Français</button>
+      <button class="lang-button" onclick="setLang('tr')">Türkçe</button>
+      <button class="lang-button" onclick="setLang('it')">Italiano</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <header class="hero">
+    <div class="hero-grid">
+      <div>
+        <div class="eyebrow" data-key="eyebrow">GUI OS · Cosmos + C#</div>
+        <h1 class="brand">ParsOS Desk</h1>
+        <p class="subtitle" data-key="description">یک سیستم‌عامل گرافیکی که به‌طور کامل با Cosmos و #C ساخته شده و مستقیم روی سخت‌افزار اجرا می‌شود.</p>
+        <div class="badge-row">
+          <span class="badge-pill status" data-key="badge-status">در حال توسعه</span>
+          <span class="badge-pill">Cosmos OS</span>
+          <span class="badge-pill">C# / .NET</span>
+          <span class="badge-pill">MIT License</span>
+        </div>
+        <div class="cta-row">
+          <a class="btn primary" href="https://github.com/amirali1390-bit/ParsOS-Desk" target="_blank" rel="noopener" data-key="btn-primary">مشاهده در گیت‌هاب ↗</a>
+          <a class="btn secondary" href="https://github.com/amirali1390-bit/ParsOS-Desk/archive/refs/heads/main.zip" data-key="btn-secondary">دانلود ZIP</a>
+        </div>
+      </div>
+
+      <div class="hero-visual" id="hero-visual">
+        <div class="os-frame" id="os-frame">
+          <!-- Replace the src below with your own screenshot/image -->
+          <img class="hero-img" id="hero-img" src="ParsOS-Desk-Screenshot.png" alt="ParsOS Desk screenshot" loading="eager">
+          <div class="hero-img-glow"></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section id="features">
+    <div class="section-head">
+      <div class="section-eyebrow" data-key="features-eyebrow">امکانات</div>
+      <h2 class="section-title" data-key="features-title">چیزی که ParsOS Desk را می‌سازد</h2>
+      <p class="section-desc" data-key="features-desc">هر بخش، تکه‌ای دست‌ساز از یک سیستم‌عامل واقعی روی سخت‌افزار خام است.</p>
+    </div>
+    <div class="feature-grid" id="feature-grid"></div>
+  </section>
+
+  <section id="tech">
+    <div class="section-head">
+      <div class="section-eyebrow" data-key="tech-eyebrow">پشته فناوری</div>
+      <h2 class="section-title" data-key="tech-title">ساخته شده با</h2>
+    </div>
+    <div class="tech-strip">
+      <span class="tech-pill">🌌 Cosmos OS</span>
+      <span class="tech-pill">🧩 C# / .NET</span>
+      <span class="tech-pill">🖥️ Bare Metal</span>
+      <span class="tech-pill">📄 MIT License</span>
+    </div>
+  </section>
+
+  <section id="screenshots">
+    <div class="shot-card">
+      <div>
+        <h3 data-key="shots-title">تصاویری از محیط دسکتاپ</h3>
+        <p data-key="shots-desc">آخرین اسکرین‌شات‌های ParsOS Desk را در ریدمی مخزن گیت‌هاب ببینید.</p>
+      </div>
+      <a class="btn secondary" href="https://github.com/amirali1390-bit/ParsOS-Desk#-screenshots" target="_blank" rel="noopener" data-key="shots-btn">مشاهده تصاویر ↗</a>
+    </div>
+  </section>
+
+  <section id="getting-started">
+    <div class="section-head">
+      <div class="section-eyebrow" data-key="gs-eyebrow">شروع سریع</div>
+      <h2 class="section-title" data-key="gs-title">راه‌اندازی محیط توسعه</h2>
+    </div>
+    <div class="getstarted-card">
+      <ul class="req-list" id="req-list"></ul>
+      <div class="clone-box">
+        <span id="clone-cmd">git clone https://github.com/amirali1390-bit/ParsOS-Desk.git</span>
+        <button class="copy-btn" id="copy-clone-btn" data-key="copy-btn">Copy</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <strong>Made with ❤️ from Iran</strong>
+  <div data-key="footer-made-by">ساخته شده توسط <a href="https://github.com/amirali1390-bit" target="_blank">amirali1390-bit</a></div>
+  <div class="copyright" data-key="copyright">© 2026 amirali1390-bit. Released under the MIT License.</div>
+</footer>
+
+<script>
+const RTL_LANGS = ['fa','ar'];
+
+const translations = {
+  fa: {
+    "eyebrow":"سیستم‌عامل گرافیکی · Cosmos + C#",
+    "description":"یک سیستم‌عامل گرافیکی که به‌طور کامل با Cosmos و #C ساخته شده و مستقیم روی سخت‌افزار (Bare Metal) اجرا می‌شود.",
+    "badge-status":"در حال توسعه",
+    "btn-primary":"مشاهده در گیت‌هاب ↗",
+    "btn-secondary":"دانلود ZIP",
+    "features-eyebrow":"امکانات",
+    "features-title":"چیزی که ParsOS Desk را می‌سازد",
+    "features-desc":"هر بخش، تکه‌ای دست‌ساز از یک سیستم‌عامل واقعی روی سخت‌افزار خام است.",
+    "features":[
+      "🪟 مدیریت پنجره‌ها — جابه‌جایی، تغییر اندازه و نام‌گذاری مستقل پنجره‌ها",
+      "🔤 رندر فونت TTF — با پشتیبانی BiDi و آنتی‌الیاسینگ خاکستری",
+      "🎵 دیکودر MP3 — پخش و دیکود صدا به‌صورت داخلی (در حال توسعه)",
+      "🖼️ دیکودر PNG — دیکود بومی تصاویر برای آیکون‌ها و والپیپر",
+      "🎬 انیمیشن‌ها — ترانزیشن‌های نرم در رابط کاربری",
+      "💠 افکت بلور — شیشه‌ی مات برای صفحه قفل و پنجره‌ها",
+      "🖱️ تعامل کامل با پنجره‌ها — جابه‌جایی، تغییر اندازه و مدیریت"
+    ],
+    "tech-eyebrow":"پشته فناوری", "tech-title":"ساخته شده با",
+    "shots-title":"تصاویری از محیط دسکتاپ",
+    "shots-desc":"آخرین اسکرین‌شات‌های ParsOS Desk را در ریدمی مخزن گیت‌هاب ببینید.",
+    "shots-btn":"مشاهده تصاویر ↗",
+    "gs-eyebrow":"شروع سریع", "gs-title":"راه‌اندازی محیط توسعه",
+    "req":["ویژوال استودیو 2022 یا 2026","نصب بودن Cosmos User Kit (آخرین نسخه)","QEMU / VirtualBox / VMware یا یک فلش بوت‌شونده"],
+    "copy-btn":"کپی",
+    "lang-menu":"🌐 تغییر زبان", "dark-mode":"حالت تاریک 🌙", "modal-title":"زبان خود را انتخاب کنید",
+    "footer-made-by":"ساخته شده توسط",
+    "copyright":"© ۲۰۲۶ amirali1390-bit. تحت مجوز MIT منتشر شده است.",
+    "mock-monitor":"مانیتور سیستم", "mock-cpu":"CPU", "mock-ram":"RAM", "mock-render":"رندر"
+  },
+  en: {
+    "eyebrow":"GUI Operating System · Cosmos + C#",
+    "description":"A graphical operating system built entirely with Cosmos and C#, running directly on bare metal.",
+    "badge-status":"In Development",
+    "btn-primary":"View on GitHub ↗",
+    "btn-secondary":"Download ZIP",
+    "features-eyebrow":"Features",
+    "features-title":"What makes up ParsOS Desk",
+    "features-desc":"Every piece is a hand-built component of a real operating system running on raw hardware.",
+    "features":[
+      "🪟 Window Manager — draggable, resizable, independently titled windows",
+      "🔤 TTF Font Renderer — with BiDi support and grayscale anti-aliasing",
+      "🎵 MP3 Decoder — built-in audio decoding and playback (in development)",
+      "🖼️ PNG Decoder — native image decoding for icons and wallpapers",
+      "🎬 Animations — smooth UI transitions",
+      "💠 Blur Effects — glass blur for the lock screen and windows",
+      "🖱️ Full Window Interactions — move, resize, and manage"
+    ],
+    "tech-eyebrow":"Tech Stack", "tech-title":"Built With",
+    "shots-title":"A look at the desktop",
+    "shots-desc":"See the latest ParsOS Desk screenshots in the GitHub repository's README.",
+    "shots-btn":"View Screenshots ↗",
+    "gs-eyebrow":"Quick Start", "gs-title":"Setting up your dev environment",
+    "req":["Visual Studio 2022 or 2026","Cosmos User Kit installed (latest version)","QEMU / VirtualBox / VMware, or a bootable USB drive"],
+    "copy-btn":"Copy",
+    "lang-menu":"🌐 Change Language", "dark-mode":"Dark Mode 🌙", "modal-title":"Choose Your Language",
+    "footer-made-by":"Made by",
+    "copyright":"© 2026 amirali1390-bit. Released under the MIT License.",
+    "mock-monitor":"System Monitor", "mock-cpu":"CPU", "mock-ram":"RAM", "mock-render":"Render"
+  },
+  ar: {
+    "eyebrow":"نظام تشغيل رسومي · Cosmos + C#",
+    "description":"نظام تشغيل رسومي مبني بالكامل باستخدام Cosmos و #C، يعمل مباشرة على العتاد الخام.",
+    "badge-status":"قيد التطوير",
+    "btn-primary":"عرض على جيت‌هاب ↗",
+    "btn-secondary":"تحميل ZIP",
+    "features-eyebrow":"الميزات",
+    "features-title":"ما الذي يكوّن ParsOS Desk",
+    "features-desc":"كل جزء هو مكوّن مصمم يدويًا لنظام تشغيل حقيقي يعمل على عتاد خام.",
+    "features":[
+      "🪟 مدير النوافذ — نوافذ قابلة للسحب وتغيير الحجم وذات عناوين مستقلة",
+      "🔤 عارض خطوط TTF — يدعم BiDi وتنعيم الحواف بتدرج الرمادي",
+      "🎵 وحدة فك تشفير MP3 — تشغيل صوتي مدمج (قيد التطوير)",
+      "🖼️ وحدة فك تشفير PNG — فك تشفير أصلي للأيقونات والخلفيات",
+      "🎬 الرسوم المتحركة — انتقالات سلسة في الواجهة",
+      "💠 تأثيرات الضبابية — زجاج ضبابي لشاشة القفل والنوافذ",
+      "🖱️ تفاعل كامل مع النوافذ — نقل وتغيير حجم وإدارة"
+    ],
+    "tech-eyebrow":"التقنيات", "tech-title":"بُني باستخدام",
+    "shots-title":"لمحة عن سطح المكتب",
+    "shots-desc":"شاهد أحدث لقطات شاشة ParsOS Desk في ملف الريدمي على جيت‌هاب.",
+    "shots-btn":"عرض الصور ↗",
+    "gs-eyebrow":"بداية سريعة", "gs-title":"إعداد بيئة التطوير",
+    "req":["Visual Studio 2022 أو 2026","تثبيت Cosmos User Kit (أحدث إصدار)","QEMU / VirtualBox / VMware، أو فلاش USB قابل للإقلاع"],
+    "copy-btn":"نسخ",
+    "lang-menu":"🌐 تغيير اللغة", "dark-mode":"الوضع الداكن 🌙", "modal-title":"اختر لغتك",
+    "footer-made-by":"صنع بواسطة",
+    "copyright":"© 2026 amirali1390-bit. تم إصداره بموجب رخصة MIT.",
+    "mock-monitor":"مراقب النظام", "mock-cpu":"المعالج", "mock-ram":"الذاكرة", "mock-render":"الرندر"
+  },
+  ru: {
+    "eyebrow":"Графическая ОС · Cosmos + C#",
+    "description":"Графическая операционная система, полностью написанная на Cosmos и C#, работающая напрямую на голом железе.",
+    "badge-status":"В разработке",
+    "btn-primary":"Смотреть на GitHub ↗",
+    "btn-secondary":"Скачать ZIP",
+    "features-eyebrow":"Возможности",
+    "features-title":"Из чего состоит ParsOS Desk",
+    "features-desc":"Каждая часть — вручную написанный компонент настоящей ОС на голом железе.",
+    "features":[
+      "🪟 Менеджер окон — перетаскиваемые окна с изменяемым размером и заголовками",
+      "🔤 Рендерер шрифтов TTF — с поддержкой BiDi и сглаживанием в градациях серого",
+      "🎵 MP3-декодер — встроенное декодирование и воспроизведение звука (в разработке)",
+      "🖼️ PNG-декодер — нативная декодировка изображений для иконок и обоев",
+      "🎬 Анимации — плавные переходы интерфейса",
+      "💠 Эффекты размытия — матовое стекло для экрана блокировки и окон",
+      "🖱️ Полное взаимодействие с окнами — перемещение, изменение размера и управление"
+    ],
+    "tech-eyebrow":"Технологии", "tech-title":"Сделано на",
+    "shots-title":"Взгляд на рабочий стол",
+    "shots-desc":"Смотрите свежие скриншоты ParsOS Desk в README репозитория на GitHub.",
+    "shots-btn":"Смотреть скриншоты ↗",
+    "gs-eyebrow":"Быстрый старт", "gs-title":"Настройка среды разработки",
+    "req":["Visual Studio 2022 или 2026","Установленный Cosmos User Kit (последняя версия)","QEMU / VirtualBox / VMware, либо загрузочная флешка"],
+    "copy-btn":"Копировать",
+    "lang-menu":"🌐 Изменить язык", "dark-mode":"Тёмный режим 🌙", "modal-title":"Выберите ваш язык",
+    "footer-made-by":"Сделано",
+    "copyright":"© 2026 amirali1390-bit. Распространяется по лицензии MIT.",
+    "mock-monitor":"Системный монитор", "mock-cpu":"ЦП", "mock-ram":"ОЗУ", "mock-render":"Рендер"
+  },
+  zh: {
+    "eyebrow":"图形操作系统 · Cosmos + C#",
+    "description":"一个完全使用 Cosmos 和 C# 构建的图形操作系统，直接运行在裸机硬件上。",
+    "badge-status":"开发中",
+    "btn-primary":"在 GitHub 上查看 ↗",
+    "btn-secondary":"下载 ZIP",
+    "features-eyebrow":"功能",
+    "features-title":"ParsOS Desk 的组成部分",
+    "features-desc":"每个部分都是运行在裸机上的真实操作系统中手工构建的组件。",
+    "features":[
+      "🪟 窗口管理器 — 可拖动、可调整大小、独立命名的窗口",
+      "🔤 TTF 字体渲染器 — 支持双向文本和灰度抗锯齿",
+      "🎵 MP3 解码器 — 内置音频解码与播放（开发中）",
+      "🖼️ PNG 解码器 — 用于图标和壁纸的原生图像解码",
+      "🎬 动画 — 流畅的界面过渡效果",
+      "💠 模糊效果 — 用于锁屏和窗口的玻璃模糊",
+      "🖱️ 完整的窗口交互 — 移动、调整大小与管理"
+    ],
+    "tech-eyebrow":"技术栈", "tech-title":"技术构成",
+    "shots-title":"桌面环境预览",
+    "shots-desc":"在 GitHub 仓库的 README 中查看最新的 ParsOS Desk 截图。",
+    "shots-btn":"查看截图 ↗",
+    "gs-eyebrow":"快速开始", "gs-title":"搭建开发环境",
+    "req":["Visual Studio 2022 或 2026","已安装 Cosmos User Kit（最新版本）","QEMU / VirtualBox / VMware，或可启动的 U 盘"],
+    "copy-btn":"复制",
+    "lang-menu":"🌐 更改语言", "dark-mode":"深色模式 🌙", "modal-title":"选择你的语言",
+    "footer-made-by":"制作者",
+    "copyright":"© 2026 amirali1390-bit。基于 MIT 许可证发布。",
+    "mock-monitor":"系统监视器", "mock-cpu":"CPU", "mock-ram":"内存", "mock-render":"渲染"
+  },
+  hi: {
+    "eyebrow":"ग्राफ़िकल OS · Cosmos + C#",
+    "description":"एक ग्राफ़िकल ऑपरेटिंग सिस्टम जो पूरी तरह Cosmos और #C से बना है और सीधे बेयर मेटल हार्डवेयर पर चलता है।",
+    "badge-status":"विकासाधीन",
+    "btn-primary":"GitHub पर देखें ↗",
+    "btn-secondary":"ZIP डाउनलोड करें",
+    "features-eyebrow":"विशेषताएं",
+    "features-title":"ParsOS Desk किससे बना है",
+    "features-desc":"हर हिस्सा असली हार्डवेयर पर चलने वाले एक वास्तविक ऑपरेटिंग सिस्टम का हाथ से बनाया गया घटक है।",
+    "features":[
+      "🪟 विंडो मैनेजर — खींचने और आकार बदलने योग्य, स्वतंत्र-शीर्षक वाली विंडो",
+      "🔤 TTF फ़ॉन्ट रेंडरर — BiDi समर्थन और ग्रेस्केल एंटी-अलायसिंग के साथ",
+      "🎵 MP3 डिकोडर — बिल्ट-इन ऑडियो डिकोडिंग और प्लेबैक (विकासाधीन)",
+      "🖼️ PNG डिकोडर — आइकॉन और वॉलपेपर के लिए नेटिव इमेज डिकोडिंग",
+      "🎬 एनिमेशन — स्मूद UI ट्रांज़िशन",
+      "💠 ब्लर इफ़ेक्ट — लॉक स्क्रीन और विंडो के लिए ग्लास ब्लर",
+      "🖱️ पूर्ण विंडो इंटरैक्शन — स्थानांतरण, आकार-परिवर्तन और प्रबंधन"
+    ],
+    "tech-eyebrow":"टेक स्टैक", "tech-title":"इनसे बना है",
+    "shots-title":"डेस्कटॉप की झलक",
+    "shots-desc":"GitHub रिपॉज़िटरी के README में ParsOS Desk के नवीनतम स्क्रीनशॉट देखें।",
+    "shots-btn":"स्क्रीनशॉट देखें ↗",
+    "gs-eyebrow":"त्वरित शुरुआत", "gs-title":"डेव एनवायरनमेंट सेट करना",
+    "req":["Visual Studio 2022 या 2026","Cosmos User Kit इंस्टॉल (नवीनतम संस्करण)","QEMU / VirtualBox / VMware, या एक बूट होने योग्य USB ड्राइव"],
+    "copy-btn":"कॉपी करें",
+    "lang-menu":"🌐 भाषा बदलें", "dark-mode":"डार्क मोड 🌙", "modal-title":"अपनी भाषा चुनें",
+    "footer-made-by":"द्वारा बनाया गया",
+    "copyright":"© 2026 amirali1390-bit. MIT लाइसेंस के तहत जारी किया गया।",
+    "mock-monitor":"सिस्टम मॉनिटर", "mock-cpu":"CPU", "mock-ram":"RAM", "mock-render":"रेंडर"
+  },
+  es: {
+    "eyebrow":"SO Gráfico · Cosmos + C#",
+    "description":"Un sistema operativo gráfico construido íntegramente con Cosmos y C#, que se ejecuta directamente sobre hardware físico.",
+    "badge-status":"En desarrollo",
+    "btn-primary":"Ver en GitHub ↗",
+    "btn-secondary":"Descargar ZIP",
+    "features-eyebrow":"Características",
+    "features-title":"De qué está hecho ParsOS Desk",
+    "features-desc":"Cada pieza es un componente construido a mano de un sistema operativo real sobre hardware físico.",
+    "features":[
+      "🪟 Gestor de ventanas — ventanas arrastrables, redimensionables y con título propio",
+      "🔤 Renderizador de fuentes TTF — con soporte BiDi y suavizado en escala de grises",
+      "🎵 Decodificador MP3 — decodificación y reproducción de audio integrada (en desarrollo)",
+      "🖼️ Decodificador PNG — decodificación nativa de imágenes para iconos y fondos",
+      "🎬 Animaciones — transiciones fluidas en la interfaz",
+      "💠 Efectos de desenfoque — cristal esmerilado para la pantalla de bloqueo y ventanas",
+      "🖱️ Interacción completa de ventanas — mover, redimensionar y gestionar"
+    ],
+    "tech-eyebrow":"Tecnologías", "tech-title":"Construido con",
+    "shots-title":"Un vistazo al escritorio",
+    "shots-desc":"Mira las últimas capturas de ParsOS Desk en el README del repositorio de GitHub.",
+    "shots-btn":"Ver capturas ↗",
+    "gs-eyebrow":"Inicio rápido", "gs-title":"Configura tu entorno de desarrollo",
+    "req":["Visual Studio 2022 o 2026","Cosmos User Kit instalado (última versión)","QEMU / VirtualBox / VMware, o una USB de arranque"],
+    "copy-btn":"Copiar",
+    "lang-menu":"🌐 Cambiar idioma", "dark-mode":"Modo oscuro 🌙", "modal-title":"Elige tu idioma",
+    "footer-made-by":"Hecho por",
+    "copyright":"© 2026 amirali1390-bit. Publicado bajo la Licencia MIT.",
+    "mock-monitor":"Monitor del sistema", "mock-cpu":"CPU", "mock-ram":"RAM", "mock-render":"Render"
+  },
+  ve: {
+    "eyebrow":"SO Gráfico · Cosmos + C#",
+    "description":"Un sistema operativo gráfico construido íntegramente con Cosmos y C#, que corre directamente sobre hardware físico.",
+    "badge-status":"En desarrollo",
+    "btn-primary":"Ver en GitHub ↗",
+    "btn-secondary":"Descargar ZIP",
+    "features-eyebrow":"Características",
+    "features-title":"De qué está hecho ParsOS Desk",
+    "features-desc":"Cada pieza es un componente hecho a mano de un sistema operativo real corriendo sobre hardware físico.",
+    "features":[
+      "🪟 Gestor de ventanas — ventanas arrastrables, redimensionables y con título propio",
+      "🔤 Renderizador de fuentes TTF — con soporte BiDi y suavizado en escala de grises",
+      "🎵 Decodificador MP3 — decodificación y reproducción de audio integrada (en desarrollo)",
+      "🖼️ Decodificador PNG — decodificación nativa de imágenes para iconos y fondos",
+      "🎬 Animaciones — transiciones fluidas en la interfaz",
+      "💠 Efectos de desenfoque — cristal esmerilado para la pantalla de bloqueo y ventanas",
+      "🖱️ Interacción completa de ventanas — mover, redimensionar y gestionar"
+    ],
+    "tech-eyebrow":"Tecnologías", "tech-title":"Construido con",
+    "shots-title":"Un vistazo al escritorio",
+    "shots-desc":"Mira las últimas capturas de ParsOS Desk en el README del repositorio de GitHub.",
+    "shots-btn":"Ver capturas ↗",
+    "gs-eyebrow":"Inicio rápido", "gs-title":"Configura tu entorno de desarrollo",
+    "req":["Visual Studio 2022 o 2026","Cosmos User Kit instalado (última versión)","QEMU / VirtualBox / VMware, o una USB de arranque"],
+    "copy-btn":"Copiar",
+    "lang-menu":"🌐 Cambiar idioma", "dark-mode":"Modo oscuro 🌙", "modal-title":"Elige tu idioma",
+    "footer-made-by":"Hecho por",
+    "copyright":"© 2026 amirali1390-bit. Publicado bajo la Licencia MIT.",
+    "mock-monitor":"Monitor del sistema", "mock-cpu":"CPU", "mock-ram":"RAM", "mock-render":"Render"
+  },
+  fr: {
+    "eyebrow":"OS Graphique · Cosmos + C#",
+    "description":"Un système d'exploitation graphique entièrement conçu avec Cosmos et C#, fonctionnant directement sur le matériel nu.",
+    "badge-status":"En développement",
+    "btn-primary":"Voir sur GitHub ↗",
+    "btn-secondary":"Télécharger le ZIP",
+    "features-eyebrow":"Fonctionnalités",
+    "features-title":"Ce qui compose ParsOS Desk",
+    "features-desc":"Chaque élément est un composant conçu à la main pour un vrai système d'exploitation sur matériel nu.",
+    "features":[
+      "🪟 Gestionnaire de fenêtres — fenêtres déplaçables, redimensionnables et titrées individuellement",
+      "🔤 Rendu de polices TTF — avec support BiDi et anticrénelage en niveaux de gris",
+      "🎵 Décodeur MP3 — décodage et lecture audio intégrés (en développement)",
+      "🖼️ Décodeur PNG — décodage natif des images pour les icônes et fonds d'écran",
+      "🎬 Animations — transitions fluides de l'interface",
+      "💠 Effets de flou — verre dépoli pour l'écran de verrouillage et les fenêtres",
+      "🖱️ Interaction complète des fenêtres — déplacement, redimensionnement et gestion"
+    ],
+    "tech-eyebrow":"Technologies", "tech-title":"Conçu avec",
+    "shots-title":"Aperçu du bureau",
+    "shots-desc":"Découvrez les dernières captures d'écran de ParsOS Desk dans le README du dépôt GitHub.",
+    "shots-btn":"Voir les captures ↗",
+    "gs-eyebrow":"Démarrage rapide", "gs-title":"Configurer votre environnement de développement",
+    "req":["Visual Studio 2022 ou 2026","Cosmos User Kit installé (dernière version)","QEMU / VirtualBox / VMware, ou une clé USB bootable"],
+    "copy-btn":"Copier",
+    "lang-menu":"🌐 Changer de langue", "dark-mode":"Mode sombre 🌙", "modal-title":"Choisissez votre langue",
+    "footer-made-by":"Fait par",
+    "copyright":"© 2026 amirali1390-bit. Distribué sous licence MIT.",
+    "mock-monitor":"Moniteur système", "mock-cpu":"CPU", "mock-ram":"RAM", "mock-render":"Rendu"
+  },
+  tr: {
+    "eyebrow":"Grafik İşletim Sistemi · Cosmos + C#",
+    "description":"Tamamen Cosmos ve C# ile geliştirilen, doğrudan çıplak donanım üzerinde çalışan grafik işletim sistemi.",
+    "badge-status":"Geliştirme Aşamasında",
+    "btn-primary":"GitHub'da Görüntüle ↗",
+    "btn-secondary":"ZIP İndir",
+    "features-eyebrow":"Özellikler",
+    "features-title":"ParsOS Desk'i oluşturan unsurlar",
+    "features-desc":"Her parça, çıplak donanım üzerinde çalışan gerçek bir işletim sisteminin elle inşa edilmiş bir bileşenidir.",
+    "features":[
+      "🪟 Pencere Yöneticisi — sürüklenebilir, yeniden boyutlandırılabilir, bağımsız başlıklı pencereler",
+      "🔤 TTF Yazı Tipi İşleyici — BiDi desteği ve gri tonlama kenar yumuşatma ile",
+      "🎵 MP3 Çözücü — dahili ses çözme ve çalma (geliştirme aşamasında)",
+      "🖼️ PNG Çözücü — simgeler ve duvar kağıtları için yerel görüntü çözümleme",
+      "🎬 Animasyonlar — akıcı arayüz geçişleri",
+      "💠 Bulanıklık Efektleri — kilit ekranı ve pencereler için buzlu cam",
+      "🖱️ Tam Pencere Etkileşimi — taşıma, yeniden boyutlandırma ve yönetim"
+    ],
+    "tech-eyebrow":"Teknoloji", "tech-title":"Şununla inşa edildi",
+    "shots-title":"Masaüstüne bir bakış",
+    "shots-desc":"GitHub deposunun README dosyasında en güncel ParsOS Desk ekran görüntülerini görün.",
+    "shots-btn":"Ekran Görüntülerini Gör ↗",
+    "gs-eyebrow":"Hızlı Başlangıç", "gs-title":"Geliştirme ortamınızı kurun",
+    "req":["Visual Studio 2022 veya 2026","Cosmos User Kit kurulu (en son sürüm)","QEMU / VirtualBox / VMware veya önyüklenebilir bir USB"],
+    "copy-btn":"Kopyala",
+    "lang-menu":"🌐 Dili değiştir", "dark-mode":"Karanlık Mod 🌙", "modal-title":"Dilinizi seçin",
+    "footer-made-by":"Yapan",
+    "copyright":"© 2026 amirali1390-bit. MIT Lisansı altında yayımlanmıştır.",
+    "mock-monitor":"Sistem Monitörü", "mock-cpu":"İşlemci", "mock-ram":"Bellek", "mock-render":"Render"
+  },
+  it: {
+    "eyebrow":"SO Grafico · Cosmos + C#",
+    "description":"Un sistema operativo grafico costruito interamente con Cosmos e C#, eseguito direttamente su hardware nudo.",
+    "badge-status":"In sviluppo",
+    "btn-primary":"Vedi su GitHub ↗",
+    "btn-secondary":"Scarica ZIP",
+    "features-eyebrow":"Funzionalità",
+    "features-title":"Cosa compone ParsOS Desk",
+    "features-desc":"Ogni parte è un componente costruito a mano di un vero sistema operativo su hardware nudo.",
+    "features":[
+      "🪟 Gestore finestre — finestre trascinabili, ridimensionabili e con titolo indipendente",
+      "🔤 Renderer di font TTF — con supporto BiDi e anti-aliasing in scala di grigi",
+      "🎵 Decoder MP3 — decodifica e riproduzione audio integrata (in sviluppo)",
+      "🖼️ Decoder PNG — decodifica nativa delle immagini per icone e sfondi",
+      "🎬 Animazioni — transizioni fluide dell'interfaccia",
+      "💠 Effetti sfocatura — vetro smerigliato per la schermata di blocco e le finestre",
+      "🖱️ Interazione completa delle finestre — spostamento, ridimensionamento e gestione"
+    ],
+    "tech-eyebrow":"Tecnologie", "tech-title":"Costruito con",
+    "shots-title":"Uno sguardo al desktop",
+    "shots-desc":"Guarda gli ultimi screenshot di ParsOS Desk nel README del repository GitHub.",
+    "shots-btn":"Vedi screenshot ↗",
+    "gs-eyebrow":"Avvio rapido", "gs-title":"Configura il tuo ambiente di sviluppo",
+    "req":["Visual Studio 2022 o 2026","Cosmos User Kit installato (ultima versione)","QEMU / VirtualBox / VMware, oppure una USB avviabile"],
+    "copy-btn":"Copia",
+    "lang-menu":"🌐 Cambia lingua", "dark-mode":"Modalità scura 🌙", "modal-title":"Scegli la tua lingua",
+    "footer-made-by":"Creato da",
+    "copyright":"© 2026 amirali1390-bit. Rilasciato sotto licenza MIT.",
+    "mock-monitor":"Monitor di sistema", "mock-cpu":"CPU", "mock-ram":"RAM", "mock-render":"Render"
+  }
+};
+
+const settingsToggle = document.getElementById('settings-toggle-btn');
+const settingsDropdown = document.getElementById('settings-dropdown-menu');
+const darkModeToggle = document.getElementById('dark-mode-toggle');
+const languageModal = document.getElementById('language-modal');
+const openModalBtn = document.getElementById('lang-modal-open');
+const langModalClose = document.getElementById('lang-modal-close');
+
+settingsToggle.addEventListener('click', (e) => { e.stopPropagation(); settingsDropdown.classList.toggle('active'); });
+window.addEventListener('click', (e) => { if (!settingsDropdown.contains(e.target) && !settingsToggle.contains(e.target)) settingsDropdown.classList.remove('active'); });
+
+function setDarkMode(isDark) {
+  document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  darkModeToggle.checked = isDark;
+}
+darkModeToggle.addEventListener('change', () => setDarkMode(darkModeToggle.checked));
+
+openModalBtn.addEventListener('click', () => { languageModal.classList.add('modal-visible'); settingsDropdown.classList.remove('active'); });
+langModalClose.addEventListener('click', () => languageModal.classList.remove('modal-visible'));
+languageModal.addEventListener('click', (e) => { if (e.target === languageModal) languageModal.classList.remove('modal-visible'); });
+
+function setLang(lang) {
+  if (!translations[lang]) lang = 'fa';
+  document.documentElement.lang = lang;
+
+  document.querySelectorAll('[data-key]').forEach(el => {
+    const key = el.dataset.key;
+    if (translations[lang][key] !== undefined) {
+      if (key === 'footer-made-by') {
+        el.innerHTML = `${translations[lang][key]} <a href="https://github.com/amirali1390-bit" target="_blank">amirali1390-bit</a>`;
+      } else {
+        el.innerText = translations[lang][key];
+      }
+    }
+  });
+
+  const grid = document.getElementById('feature-grid');
+  grid.innerHTML = '';
+  translations[lang].features.forEach(f => {
+    const [icon, ...rest] = f.split(' ');
+    const text = rest.join(' ');
+    const card = document.createElement('div');
+    card.className = 'feature-card';
+    card.innerHTML = `
+      <div class="feature-titlebar"><span></span><span></span><span></span></div>
+      <div class="feature-body">
+        <span class="feature-icon">${icon}</span>
+        <p class="feature-text">${text}</p>
+      </div>`;
+    grid.appendChild(card);
+  });
+
+  const reqList = document.getElementById('req-list');
+  reqList.innerHTML = '';
+  translations[lang].req.forEach(r => {
+    const li = document.createElement('li');
+    li.className = 'req-item';
+    li.innerText = r;
+    reqList.appendChild(li);
+  });
+
+  localStorage.setItem('language', lang);
+  languageModal.classList.remove('modal-visible');
+}
+
+const copyBtn = document.getElementById('copy-clone-btn');
+copyBtn.addEventListener('click', () => {
+  const text = document.getElementById('clone-cmd').innerText;
+  navigator.clipboard?.writeText(text).then(() => {
+    const original = copyBtn.innerText;
+    copyBtn.innerText = '✓';
+    setTimeout(() => { copyBtn.innerText = original; }, 1400);
+  });
+});
+
+/* Parallax tilt on hero visual (works on the frame around your image) */
+const heroVisual = document.getElementById('hero-visual');
+const osFrame = document.getElementById('os-frame');
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+if (heroVisual && !reduceMotion) {
+  heroVisual.addEventListener('mousemove', (e) => {
+    const r = heroVisual.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width - 0.5;
+    const y = (e.clientY - r.top) / r.height - 0.5;
+    osFrame.style.transform = `rotateY(${x * 6}deg) rotateX(${-y * 6}deg)`;
+  });
+  heroVisual.addEventListener('mouseleave', () => { osFrame.style.transform = 'rotateY(0) rotateX(0)'; });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const savedTheme = localStorage.getItem('theme');
+  setDarkMode(savedTheme ? (savedTheme === 'dark') : (window.matchMedia('(prefers-color-scheme: dark)').matches));
+
+  const savedLang = localStorage.getItem('language');
+  const userLang = navigator.language.split('-')[0];
+  setLang(savedLang || (translations[userLang] ? userLang : 'fa'));
+});
+</script>
+</body>
+</html>
